@@ -1,7 +1,3 @@
-locals {
-  
-}
-
 output "result" {
   value = {
     IP = google_compute_address.public_ip.address,
