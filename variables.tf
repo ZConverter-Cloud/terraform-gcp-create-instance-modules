@@ -66,6 +66,23 @@ variable "additional_volumes" {
 }
 
 locals {
+
+}
+
+
+locals {
+  metadata_startup_script = var.OS_name != "windows" && var.user_data_file_path != null && var.user_data_file_path != "null" ? templatefile(
+    "${path.module}/startup_script_sh.tftpl",
+    {
+      userdata = var.OS_name != "windows" ? fileexists(var.user_data_file_path) != false ? file(var.user_data_file_path) : null : null
+    }
+  ) : null
+  windows_startup_script_ps1 = var.OS_name == "windows" && var.user_data_file_path != null && var.user_data_file_path != "null" ? templatefile(
+    "${path.module}/startup_script_ps1.tftpl",
+    {
+      userdata = var.OS_name == "windows" ? fileexists(var.user_data_file_path) != false ? file(var.user_data_file_path) : null : null
+    }
+  ) : null
   OS_list = {
     centos = {
       "7" = {
