@@ -1,19 +1,3 @@
-locals {
-  metadata_startup_script = var.OS_name != "windows" && var.user_data_file_path != null && var.user_data_file_path != "null" ? templatefile(
-    "${path.module}/startup_script_sh.tftpl",
-    {
-      userdata = var.OS_name != "windows" ? fileexists(var.user_data_file_path) != false ? file(var.user_data_file_path) : null : null
-    }
-  ) : null
-
-  windows_startup_script_ps1 = var.OS_name == "windows" && var.user_data_file_path != null && var.user_data_file_path != "null" ? templatefile(
-    "${path.module}/startup_script_ps1.tftpl",
-    {
-      userdata = var.OS_name == "windows" ? fileexists(var.user_data_file_path) != false ? file(var.user_data_file_path) : null : null
-    }
-  ) : null
-}
-
 resource "google_compute_instance" "create_gcp_instance" {
   name         = var.vm_name
   machine_type = var.machine_type
