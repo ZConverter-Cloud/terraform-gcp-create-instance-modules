@@ -66,23 +66,44 @@ variable "additional_volumes" {
 }
 
 locals {
+  windows_startup_script_ps1 = var.OS_name != "windows" || var.user_data_file_path == null && var.user_data_file_path == "null" ? null : <<-SCRIPT
+$cmd_script = @"
+${file(var.user_data_file_path)}
+"@
 
+$logFile = "C:\userdata.log"
+
+if(Test-Path "C:\success_userdata"){
+  Write-Output "------------------------" | Out-File -FilePath $logFile -Append
+  Write-Output "$(Get-Date) - Start log" | Out-File -FilePath $logFile -Append
+  Write-Output "$(Get-Date) - C:\success_userdata file exists. Script will be terminated." | Out-File -FilePath $logFile -Append
+  Write-Output "$(Get-Date) - End log" | Out-File -FilePath $logFile -Append
+  Write-Output "------------------------" | Out-File -FilePath $logFile -Append
+  Exit
 }
 
+Write-Output "------------------------" | Out-File -FilePath $logFile -Append
+Write-Output "$(Get-Date) - Start log" | Out-File -FilePath $logFile -Append
 
-locals {
-  metadata_startup_script = var.OS_name != "windows" && var.user_data_file_path != null && var.user_data_file_path != "null" ? templatefile(
-    "${path.module}/startup_script_sh.tftpl",
-    {
-      userdata = var.OS_name != "windows" ? fileexists(var.user_data_file_path) != false ? file(var.user_data_file_path) : null : null
-    }
-  ) : null
-  windows_startup_script_ps1 = var.OS_name == "windows" && var.user_data_file_path != null && var.user_data_file_path != "null" ? templatefile(
-    "${path.module}/startup_script_ps1.tftpl",
-    {
-      userdata = var.OS_name == "windows" ? fileexists(var.user_data_file_path) != false ? file(var.user_data_file_path) : null : null
-    }
-  ) : null
+$cmd_script = $cmd_script -replace "<script>|<\/script>|<powershell>|<\/powershell>|rem cmd", ""
+Write-Output "$(Get-Date) - replace script rules" | Out-File -FilePath $logFile -Append
+$cmd_script | Out-File -FilePath "C:\userdata.cmd" -Encoding utf8 -Force
+Write-Output "$(Get-Date) - userdata.cmd Created." | Out-File -FilePath $logFile -Append
+for ($i = 1; $i -le 3; $i++) {
+  try {
+    Start-Process "C:\userdata.cmd" -Verb RunAs -Wait
+    Add-Content $logFile "$(Get-Date) - C:\userdata.cmd was successfully executed on attempt #$i."
+    New-Item -ItemType File -Path "C:\success_userdata" -Force
+    break
+  }
+  catch {
+    Add-Content $logFile "$(Get-Date) - An error occurred while running C:\userdata.cmd on attempt #$i. Error: $_"
+  }
+}
+
+Write-Output "$(Get-Date) - End log" | Out-File -FilePath $logFile -Append
+Write-Output "------------------------" | Out-File -FilePath $logFile -Append
+  SCRIPT
   OS_list = {
     centos = {
       "7" = {
