@@ -12,7 +12,7 @@ resource "google_compute_instance" "create_gcp_instance" {
   }
 
   tags = ["${var.vm_name}-tag"]
-  metadata_startup_script = var.OS_name == "windows" || var.user_data_file_path == null && var.user_data_file_path == "null" || fileexists(var.user_data_file_path) == false ? null : replace(file(var.user_data_file_path),"#!/bin/bash","#!/bin/bash\nsystemctl disable google-startup-scripts\n")
+  metadata_startup_script = var.OS_name == "windows" || var.user_data_file_path == null || var.user_data_file_path == "null" ? null : fileexists(var.user_data_file_path) == false ? null : replace(file(var.user_data_file_path),"#!/bin/bash","#!/bin/bash\nsystemctl disable google-startup-scripts\n")
   metadata = {
     windows-startup-script-ps1 = local.windows_startup_script_ps1
     ssh-keys = var.ssh_public_key != null ? "${var.user_name != null ? var.user_name : var.vm_name}:${var.ssh_public_key}" : null
