@@ -8,7 +8,7 @@
 
 ## Before You Begin
 To successfully perform this tutorial, you must have the following:
-
+   * You need to install [git](https://git-scm.com/downloads) in advance to use it.
    * Prepare available GCP accounts
    * Please refer to [the API activation manual](https://cloud.google.com/endpoints/docs/openapi/enable-api?hl=en) and the [service account setting manual](https://developers.google.com/workspace/guides/create-credentials?hl=en) to activate the Compute Engine API and create a service account on the project to be used and save it locally as json.
 
